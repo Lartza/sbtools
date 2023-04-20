@@ -6,12 +6,11 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import {
-  Alert,
-  Col, Pagination, Row, Table,
+  Alert, Col, Row, Table,
 } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
-import { Link } from 'react-router-dom';
-import { useGetSponsortimesQuery } from '../slices/sponsortimeApiSlice';
+import { Link, useParams } from 'react-router-dom';
+import { useGetSponsortimesByUUIDQuery } from '../slices/sponsortimeApiSlice';
 import { actionTypeElements, clipButtonStyle, formatDuration } from '../utils';
 
 const columnHelper = createColumnHelper();
@@ -65,16 +64,6 @@ const columns = [
     header: 'S.hidden',
     cell: (info) => (info.getValue() ? <span title="This segment has been shadowhidden.">🥷</span> : '—'),
   }),
-  columnHelper.accessor('UUID', {
-    header: 'UUID',
-    cell: (info) => (
-      <div>
-        <Form.Control as="textarea" style={{ maxWidth: 150 }} value={info.getValue()} readOnly />
-        <button type="button" style={clipButtonStyle} onClick={() => { navigator.clipboard.writeText(info.getValue()); }}>✂</button>
-        <Link to={`/uuid/${info.getValue()}`} style={{ textDecoration: 'none' }}>🔗</Link>
-      </div>
-    ),
-  }),
   columnHelper.accessor('userName', {
     header: 'Username',
     cell: (info) => (info.getValue() ? (
@@ -97,12 +86,8 @@ const columns = [
   }),
 ];
 
-function SponsortimeTable() {
-  const [{ pageIndex, pageSize }, setPagination] = React.useState({
-    pageIndex: 0,
-    pageSize: 10,
-  });
-  const [sorting, setSorting] = React.useState([{ id: 'timeSubmitted', desc: true }]);
+function UUIDTable() {
+  const params = useParams();
   const {
     data,
     isLoading,
@@ -110,39 +95,17 @@ function SponsortimeTable() {
     isSuccess,
     isError,
     error,
-  } = useGetSponsortimesQuery({ pageIndex, pageSize, sorting });
+  } = useGetSponsortimesByUUIDQuery(params.UUID);
 
-  const pagination = React.useMemo(
-    () => ({
-      pageIndex,
-      pageSize,
-    }),
-    [pageIndex, pageSize],
-  );
-
-  let sponsortimes = [];
-  let pageCount = -1;
-
+  let segment = [];
   if (isSuccess) {
-    sponsortimes = data.items;
-    pageCount = data.pages;
+    segment = [data];
   }
 
   const table = useReactTable({
-    data: sponsortimes,
+    data: segment,
     columns,
-    pageCount,
-    state: {
-      pagination,
-      sorting,
-    },
-    onPaginationChange: setPagination,
-    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
-    enableSorting: true,
-    enableMultiSort: true,
-    manualPagination: true,
-    manualSorting: true,
   });
 
   if (isLoading) {
@@ -201,69 +164,8 @@ function SponsortimeTable() {
           </Table>
         </Col>
       </Row>
-      <Row>
-        <Col>
-          <Pagination>
-            <Pagination.First
-              onClick={() => table.setPageIndex(0)}
-              disabled={!table.getCanPreviousPage()}
-            />
-            <Pagination.Prev
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            />
-            <Pagination.Next
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            />
-            <Pagination.Last
-              onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-              disabled="true"
-            />
-          </Pagination>
-        </Col>
-        <Col>
-          <div>Page</div>
-          <strong>
-            {table.getState().pagination.pageIndex + 1}
-            {' '}
-            of
-            {' '}
-            {table.getPageCount()}
-          </strong>
-        </Col>
-        <Col>
-          Go to page:
-          <Form.Control
-            type="number"
-            min="1"
-            max={pageCount === -1 ? null : pageCount}
-            defaultValue={table.getState().pagination.pageIndex + 1}
-            onChange={(e) => {
-              const page = e.target.value ? Number(e.target.value) - 1 : 0;
-              table.setPageIndex(page);
-            }}
-          />
-        </Col>
-        <Col>
-          <Form.Select
-            value={table.getState().pagination.pageSize}
-            onChange={(e) => {
-              table.setPageSize(Number(e.target.value));
-            }}
-          >
-            {[10, 20, 30, 40, 50].map((size) => (
-              <option key={size} value={size}>
-                Show
-                {' '}
-                {size}
-              </option>
-            ))}
-          </Form.Select>
-        </Col>
-      </Row>
     </>
   );
 }
 
-export default SponsortimeTable;
+export default UUIDTable;

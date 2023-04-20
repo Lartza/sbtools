@@ -10,8 +10,8 @@ import {
   Col, Pagination, Row, Table,
 } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
-import { Link } from 'react-router-dom';
-import { useGetSponsortimesQuery } from '../slices/sponsortimeApiSlice';
+import { Link, useParams } from 'react-router-dom';
+import { useGetSponsortimesByUserIdQuery } from '../slices/sponsortimeApiSlice';
 import { actionTypeElements, clipButtonStyle, formatDuration } from '../utils';
 
 const columnHelper = createColumnHelper();
@@ -85,24 +85,16 @@ const columns = [
       </div>
     ) : '—'),
   }),
-  columnHelper.accessor('userID', {
-    header: 'UserID',
-    cell: (info) => (
-      <div>
-        <Form.Control as="textarea" style={{ maxWidth: 200 }} value={info.getValue()} readOnly />
-        <button type="button" style={clipButtonStyle} onClick={() => { navigator.clipboard.writeText(info.getValue()); }}>✂</button>
-        <Link to={`/userid/${info.getValue()}`} style={{ textDecoration: 'none' }}>🔗</Link>
-      </div>
-    ),
-  }),
 ];
 
-function SponsortimeTable() {
+function UserIDTable() {
   const [{ pageIndex, pageSize }, setPagination] = React.useState({
     pageIndex: 0,
     pageSize: 10,
   });
   const [sorting, setSorting] = React.useState([{ id: 'timeSubmitted', desc: true }]);
+
+  const params = useParams();
   const {
     data,
     isLoading,
@@ -110,7 +102,9 @@ function SponsortimeTable() {
     isSuccess,
     isError,
     error,
-  } = useGetSponsortimesQuery({ pageIndex, pageSize, sorting });
+  } = useGetSponsortimesByUserIdQuery({
+    userID: params.userID, pageIndex, pageSize, sorting,
+  });
 
   const pagination = React.useMemo(
     () => ({
@@ -266,4 +260,4 @@ function SponsortimeTable() {
   );
 }
 
-export default SponsortimeTable;
+export default UserIDTable;

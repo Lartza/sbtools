@@ -2,26 +2,61 @@ import React from 'react';
 import {
   Col, Container, Nav, Navbar, Row,
 } from 'react-bootstrap';
-import SponsortimeTable from './components/SponsortimeTable';
+import { Link, Outlet } from 'react-router-dom';
+import TimeAgo from 'react-timeago';
+import { useGetUpdatedQuery } from './slices/sponsortimeApiSlice';
 
 function App() {
+  const {
+    data,
+    isLoading,
+    isSuccess,
+  } = useGetUpdatedQuery();
+
+  let updated = '';
+  if (isSuccess) {
+    updated = data.value;
+  }
+
   return (
     <Container fluid>
       <Row>
         <Col>
           <Navbar>
-            <Navbar.Brand href="/">SBBrowser</Navbar.Brand>
+            <Navbar.Brand as={Link} to="/">
+              <img
+                src="/logo.png"
+                width="30"
+                height="30"
+                className="d-inline-block align-top"
+                alt="SBBrowser logo"
+              />
+              {' '}
+              SBBrowser
+            </Navbar.Brand>
             <Nav>
               <Nav.Link target="_blank" href="https://sb.ltn.fi/database">Database download</Nav.Link>
               <Nav.Link target="_blank" href="https://api.sb.ltn.fi/docs">API</Nav.Link>
             </Nav>
           </Navbar>
         </Col>
-        <Col>
-          Last update: TODO, check last segment time for now. All times UTC
+        <Col className="align-self-center">
+          Last update:
+          {' '}
+          {isLoading ? 'Loading...' : (
+            <>
+              {updated.slice(0, -13)}
+              {' '}
+              (
+              <TimeAgo date={updated} />
+              )
+            </>
+          )}
+          {' '}
+          All times UTC
         </Col>
       </Row>
-      <SponsortimeTable />
+      <Outlet />
       <Row>
         <Col>
           <span>
