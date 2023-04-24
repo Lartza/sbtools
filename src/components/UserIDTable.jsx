@@ -1,6 +1,5 @@
 import * as React from 'react';
 import {
-  createColumnHelper,
   flexRender,
   getCoreRowModel,
   useReactTable,
@@ -10,82 +9,9 @@ import {
   Col, Pagination, Row, Table,
 } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useGetSponsortimesByUserIdQuery } from '../slices/sponsortimeApiSlice';
-import { actionTypeElements, clipButtonStyle, formatDuration } from '../utils';
-
-const columnHelper = createColumnHelper();
-
-const columns = [
-  columnHelper.accessor('timeSubmitted', {
-    header: 'Submitted',
-    cell: (info) => new Date(info.getValue()).toISOString().slice(0, -3).replace('T', ' '),
-  }),
-  columnHelper.accessor('videoID', {
-    header: 'VideoID',
-    cell: (info) => (
-      <span>
-        <Link to={`/video/${info.getValue()}`}>{info.getValue()}</Link>
-        <button type="button" style={clipButtonStyle} onClick={() => { navigator.clipboard.writeText(info.getValue()); }}>✂</button>
-        <a href="https://youtu.be/fnsXQ16_3R4">YT</a>
-      </span>
-    ),
-  }),
-  columnHelper.accessor('startTime', {
-    header: 'Start',
-    cell: (info) => formatDuration(info.getValue()),
-  }),
-  columnHelper.accessor('endTime', {
-    header: 'End',
-    cell: (info) => formatDuration(info.getValue()),
-  }),
-  columnHelper.accessor((row) => row.endTime - row.startTime, {
-    header: 'Length',
-    cell: (info) => formatDuration(info.getValue()),
-    enableSorting: false,
-  }),
-  columnHelper.accessor('votes', {
-    header: 'Votes',
-  }),
-  columnHelper.accessor('views', {
-    header: 'Views',
-  }),
-  columnHelper.accessor('category', {
-    header: 'Category',
-  }),
-  columnHelper.accessor('actionType', {
-    header: 'Action',
-    cell: (info) => actionTypeElements[info.getValue()],
-  }),
-  columnHelper.accessor('hidden', {
-    header: 'Hidden',
-    cell: (info) => (info.getValue() ? <span title="This segment is hidden due to video duration change.">❌</span> : '—'),
-  }),
-  columnHelper.accessor('shadowHidden', {
-    header: 'S.hidden',
-    cell: (info) => (info.getValue() ? <span title="This segment has been shadowhidden.">🥷</span> : '—'),
-  }),
-  columnHelper.accessor('UUID', {
-    header: 'UUID',
-    cell: (info) => (
-      <div>
-        <Form.Control as="textarea" style={{ maxWidth: 150 }} value={info.getValue()} readOnly />
-        <button type="button" style={clipButtonStyle} onClick={() => { navigator.clipboard.writeText(info.getValue()); }}>✂</button>
-        <Link to={`/uuid/${info.getValue()}`} style={{ textDecoration: 'none' }}>🔗</Link>
-      </div>
-    ),
-  }),
-  columnHelper.accessor('userName', {
-    header: 'Username',
-    cell: (info) => (info.getValue() ? (
-      <div>
-        <Form.Control as="textarea" value={info.getValue()} readOnly />
-        <button type="button" style={clipButtonStyle} onClick={() => { navigator.clipboard.writeText(info.getValue()); }}>✂</button>
-        <Link to={`/username/${info.getValue()}`} style={{ textDecoration: 'none' }}>🔗</Link>
-      </div>
-    ) : '—'),
-  }),
-];
+import { userColumns } from '../columns';
 
 function UserIDTable() {
   const [{ pageIndex, pageSize }, setPagination] = React.useState({
@@ -124,7 +50,7 @@ function UserIDTable() {
 
   const table = useReactTable({
     data: sponsortimes,
-    columns,
+    columns: userColumns,
     pageCount,
     state: {
       pagination,

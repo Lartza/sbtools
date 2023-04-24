@@ -4,8 +4,49 @@ export const sponsortimeApi = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: 'https://api.sb.ltn.fi' }),
   endpoints: (builder) => ({
     getSponsortimes: builder.query({
-      query: ({ page = 0, size = 10, sorting = [{ id: 'timeSubmitted', desc: true }] }) => {
+      query: ({
+        page = 0, size = 10, sorting, columnFilters = [{ id: 'timeSubmitted', desc: true }],
+      }) => {
         let path = `/sponsortimes?page=${page + 1}&size=${size}`;
+        columnFilters.forEach((currentValue, index, arr) => {
+          switch (currentValue.id) {
+            case 'videoID':
+              path += `&videoID=${currentValue.value}`;
+              break;
+            case 'length':
+              if (currentValue.value[0]) {
+                path += `&length__gte=${currentValue.value[0]}`;
+              }
+              if (currentValue.value[1]) {
+                path += `&length__lte=${currentValue.value[1]}`;
+              }
+              break;
+            case 'votes':
+              if (currentValue.value[0]) {
+                path += `&votes__gte=${currentValue.value[0]}`;
+              }
+              if (currentValue.value[1]) {
+                path += `&votes__lte=${currentValue.value[1]}`;
+              }
+              break;
+            case 'views':
+              if (currentValue.value[0]) {
+                path += `&views__gte=${currentValue.value[0]}`;
+              }
+              if (currentValue.value[1]) {
+                path += `&views__lte=${currentValue.value[1]}`;
+              }
+              break;
+            case 'userID':
+              path += `&userID=${currentValue.value}`;
+              break;
+            case 'userName':
+              path += `&user__userNameID=${currentValue.value}`;
+              break;
+            default:
+              break;
+          }
+        });
         if (sorting.length > 0) {
           path += `&order_by=${sorting.map((c) => (c.desc ? `-${c.id}` : c.id)).join(',')}`;
         }
